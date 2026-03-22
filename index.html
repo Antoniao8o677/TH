@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我们的浪漫动态小屋 ✨</title>
+    <style>
+        :root {
+            --bg-pink: #FFF0F5;
+            --accent-pink: #FF69B4;
+            --sub-pink: #FFB6C1;
+            --text-brown: #8B4513;
+        }
+        body {
+            background: linear-gradient(135deg, var(--bg-pink) 0%, #ffffff 100%);
+            margin: 0; font-family: "Microsoft YaHei", sans-serif;
+            display: flex; flex-direction: column; align-items: center; padding-bottom: 50px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9); border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(255,182,193,0.3);
+            width: 90%; max-width: 600px; padding: 30px; margin-top: 30px;
+        }
+        h1 { color: var(--accent-pink); text-align: center; }
+        
+        /* 纪念日编辑区 */
+        .timer-section { text-align: center; cursor: pointer; }
+        .timer-days { font-size: 60px; color: var(--accent-pink); font-weight: bold; }
+        #date-input { display: none; margin-top: 10px; border: 1px solid var(--sub-pink); border-radius: 10px; padding: 5px; }
+
+        /* 手账输入区 */
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        textarea { border: 1px solid var(--sub-pink); border-radius: 15px; padding: 15px; resize: none; height: 80px; }
+        .save-btn { 
+            background: var(--accent-pink); color: white; border: none; 
+            padding: 10px; border-radius: 20px; cursor: pointer; transition: 0.3s;
+        }
+        .save-btn:hover { background: var(--sub-pink); }
+
+        /* 记录显示区 */
+        .record-list { margin-top: 20px; }
+        .record-item { 
+            background: #fff; border-left: 5px solid var(--sub-pink); 
+            padding: 15px; border-radius: 10px; margin-bottom: 10px; position: relative;
+        }
+        .record-date { font-size: 12px; color: #999; }
+        .delete-btn { position: absolute; right: 10px; top: 10px; color: #ccc; cursor: pointer; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="glass-card header-card">
+        <h1>我们的浪漫小屋 <span style="color:var(--accent-pink)">❤</span></h1>
+        <div class="timer-section" onclick="showDatePicker()">
+            <div style="font-size: 14px; color: #999;">点击下方数字修改纪念日</div>
+            <div class="timer-days" id="display-days">0</div>
+            <div style="color: var(--sub-pink);">天啦</div>
+            <input type="date" id="date-input" onchange="saveDate(this.value)">
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <h2 style="color: var(--accent-pink); font-size: 18px;">✍ 记下一件浪漫小事</h2>
+        <div class="input-group">
+            <textarea id="note-content" placeholder="今天发生了什么好事？"></textarea>
+            <button class="save-btn" onclick="addNote()">存入浪漫手账</button>
+        </div>
+        <div class="record-list" id="note-list">
+            </div>
+    </div>
+
+    <script>
+        // --- 纪念日逻辑 ---
+        function updateDisplay(startDateStr) {
+            const start = new Date(startDateStr);
+            const today = new Date();
+            const diff = Math.ceil(Math.abs(today - start) / (1000 * 60 * 60 * 24));
+            document.getElementById('display-days').innerText = diff;
+        }
+
+        function showDatePicker() { document.getElementById('date-input').style.display = 'inline-block'; }
+
+        function saveDate(val) {
+            localStorage.setItem('loveStartDate', val);
+            updateDisplay(val);
+            document.getElementById('date-input').style.display = 'none';
+        }
+
+        // --- 手账逻辑 ---
+        function addNote() {
+            const content = document.getElementById('note-content').value;
+            if(!content) return;
+            const notes = JSON.parse(localStorage.getItem('loveNotes') || '[]');
+            notes.unshift({ content, date: new Date().toLocaleString() });
+            localStorage.setItem('loveNotes', JSON.stringify(notes));
+            document.getElementById('note-content').value = '';
+            renderNotes();
+        }
+
+        function renderNotes() {
+            const notes = JSON.parse(localStorage.getItem('loveNotes') || '[]');
+            const list = document.getElementById('note-list');
+            list.innerHTML = notes.map((n, i) => `
+                <div class="record-item">
+                    <span class="delete-btn" onclick="deleteNote(${i})">删除</span>
+                    <div class="record-date">${n.date}</div>
+                    <div style="margin-top:5px;">${n.content}</div>
+                </div>
+            `).join('');
+        }
+
+        function deleteNote(index) {
+            const notes = JSON.parse(localStorage.getItem('loveNotes') || '[]');
+            notes.splice(index, 1);
+            localStorage.setItem('loveNotes', JSON.stringify(notes));
+            renderNotes();
+        }
+
+        // 初始化加载
+        const savedDate = localStorage.getItem('loveStartDate') || '2024-01-01';
+        updateDisplay(savedDate);
+        renderNotes();
+    </script>
+
+    </body>
+</html>
